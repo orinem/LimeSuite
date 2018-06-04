@@ -1,0 +1,16 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {1765761f-59c6-49e4-bad1-316ffa715c11} = s 'LimeAPI class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Free'
+			}
+			TypeLib = s '{57e497ce-cfc6-46f6-a07c-c10eb84b4a2a}'
+			Version = s '1.0'
+		}
+	}
+}

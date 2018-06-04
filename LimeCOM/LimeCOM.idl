@@ -1,0 +1,252 @@
+// LimeCOM.idl : IDL source for LimeCOM
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (LimeCOM.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+typedef [uuid(C828C050-ABF5-49F0-B28C-AD71970F5C7D), v1_enum] enum {
+	FMT_F32 = 0,
+	FMT_I16,
+	FMT_I12
+} LMS_FMT;
+
+
+///Enumeration of RF ports
+typedef [uuid(1D7BBEE4-0869-45D2-B1F6-F6E410BF8488), v1_enum] enum {
+	PATH_NONE = 0, ///<No active path (RX or TX)
+	PATH_LNAH = 1, ///<RX LNA_H port
+	PATH_LNAL = 2, ///<RX LNA_L port
+	PATH_LNAW = 3, ///<RX LNA_W port
+	PATH_TX1 = 1,  ///<TX port 1
+	PATH_TX2 = 2   ///<TX port 2
+} LMS_PATH;
+
+typedef
+[
+	uuid(DF08B939-168D-486D-97A9-170F2A01FBDC),
+	version(1.0)
+]
+struct LMSRange {
+	DOUBLE  min;
+	DOUBLE	max;
+	DOUBLE	step;
+} LMSRange;
+
+
+/**Enumeration of LMS7 TEST signal types*/
+typedef [uuid(000E8281-2B82-41B0-88CB-E5F434464C60), v1_enum] enum {
+	TESTSIG_NONE = 0,     ///<Disable test signals. Return to normal operation
+	TESTSIG_NCODIV8,    ///<Test signal from NCO half scale
+	TESTSIG_NCODIV4,    ///<Test signal from NCO half scale
+	TESTSIG_NCODIV8F,   ///<Test signal from NCO full scale
+	TESTSIG_NCODIV4F,   ///<Test signal from NCO full scale
+	TESTSIG_DC          ///<DC test signal
+} LMS_TESTSIG;
+
+/**Enumeratino of LMS LOG LEVELS*/
+typedef [uuid(C577FE20-321C-493F-9F0F-D5E91353F395), v1_enum] enum {
+	///An error message . An operation did not complete successfully.
+	LOG_ERROR = 1,
+	///A warning message. An operation completed with an unexpected result.
+	LOG_WARNING = 2,
+	///An informational message, usually denoting the successful completion of an operation
+	LOG_INFO = 3,
+	///A debugging message.
+	LOG_DEBUG = 4,
+} LMS_LOG_LEVEL;
+
+/**Metadata structure used in sample transfers*/
+typedef
+[
+	uuid(27AF9152-7F04-4B1E-9C03-777C54CBAC6B),
+	version(1.0)
+]
+struct LMSStreamMeta
+{
+	/**
+	* Timestamp is a value of HW counter with a tick based on sample rate.
+	* In RX: time when the first sample in the returned buffer was received
+	* In TX: time when the first sample in the submitted buffer should be send
+	*/
+	ULONGLONG timestamp;
+
+	/**In TX: wait for the specified HW timestamp before broadcasting data over
+	* the air
+	* In RX: wait for the specified HW timestamp before starting to receive
+	* samples
+	*/
+	VARIANT_BOOL waitForTimestamp;
+
+	/**Indicates the end of send/receive transaction. Currently has no effect
+	* @todo force send samples to HW (ignore transfer size) when selected
+	*/
+	VARIANT_BOOL flushPartialPacket;
+
+} LMSStreamMeta;
+
+
+/**Streaming status structure*/
+typedef
+[
+	uuid(53A358D3-A0BE-4B4B-858F-8950D43D5D54),
+	version(1.0)
+]
+struct LMSStreamStatus
+{
+	///Indicates whether the stream is currently active
+	VARIANT_BOOL active;
+	///Number of samples in FIFO buffer
+	ULONG fifoFilledCount;
+	///Size of FIFO buffer
+	ULONG fifoSize;
+	///FIFO underrun count
+	ULONG underrun;
+	///FIFO overrun count
+	ULONG overrun;
+	///Number of dropped packets by HW
+	ULONG droppedPackets;
+	///Currently not used
+	DOUBLE sampleRate;
+	///Combined data rate of all stream of the same direction (TX or RX)
+	DOUBLE linkRate;
+	///Current HW timestamp
+	ULONGLONG timestamp;
+
+} LMSStreamStatus;
+
+interface ILMSDevice;
+interface ILMSLogHandler;
+[
+	object,
+	uuid(535b69d7-f0d0-460c-8630-5fc8b522f6af),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface ILimeAPI : IDispatch
+{
+	[propget, id(1)] HRESULT LibraryVersion([out, retval] BSTR * pVal);
+	[propget, id(2)] HRESULT DeviceList([out, retval] SAFEARRAY(BSTR) * pVal);
+	[id(3)] HRESULT Open([out] ILMSDevice ** device, [in] BSTR info, [out, retval] VARIANT_BOOL* pVal);
+	[id(4)] HRESULT RegisterLogHandler([in] ILMSLogHandler * handler);
+
+};
+[
+	object,
+	uuid(29A834C3-9566-467E-B04B-40F52F4C43BE),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface ILMSStream : IDispatch {
+	[propget, id(1)] HRESULT isTx([out, retval] VARIANT_BOOL* pVal);
+	[propput, id(1)] HRESULT isTx([in] VARIANT_BOOL newVal);
+	[propget, id(2)] HRESULT channel([out, retval] ULONG* pVal);
+	[propput, id(2)] HRESULT channel([in] ULONG newVal);
+	[propget, id(3)] HRESULT fifoSize([out, retval] ULONG* pVal);
+	[propput, id(3)] HRESULT fifoSize([in] ULONG newVal);
+	[propget, id(4)] HRESULT throughputVsLatency([out, retval] FLOAT* pVal);
+	[propput, id(4)] HRESULT throughputVsLatency([in] FLOAT newVal);
+	[propget, id(5)] HRESULT dataFmt([out, retval] LMS_FMT* pVal);
+	[propput, id(5)] HRESULT dataFmt([in] LMS_FMT newVal);
+	[id(6)] HRESULT Start([out, retval] VARIANT_BOOL* pVal);
+	[id(7)] HRESULT Stop([out, retval] VARIANT_BOOL* pVal);
+	[id(8), local] HRESULT Recv([in] void *samples, [in, out] ULONG * sample_count, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+	[id(9), local] HRESULT RecvWithMeta(void *samples, [in, out] ULONG * sample_count, [in, out] LMSStreamMeta * meta, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+	[id(10)] HRESULT GetStatus([in, out] LMSStreamStatus * status, [out, retval] VARIANT_BOOL* pVal);
+	[id(11)] HRESULT Send([in, out, size_is(*sample_count*2)] FLOAT *samples, [in, out] ULONG * sample_count, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+	[id(12)] HRESULT SendWithMeta([in, out, size_is(*sample_count*2)] FLOAT *samples, [in, out] ULONG * sample_count, [in, out] LMSStreamMeta * meta, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+};
+[
+	object,
+	uuid(21c6f8de-dc1d-46f5-9ac4-169c68c8bc49),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface ILMSDevice : IDispatch
+{
+	[id(1)] HRESULT Close([out, retval] VARIANT_BOOL* pVal);
+	[id(2)] HRESULT Reset([out, retval] VARIANT_BOOL* pVal);
+	[id(3)] HRESULT Init([out, retval] VARIANT_BOOL* pVal);
+	[propget, id(4)] HRESULT NumChannels([in] VARIANT_BOOL dir_tx, [out, retval] LONG* pVal);
+	[id(5)] HRESULT EnableChannel([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] VARIANT_BOOL enabled, [out, retval] VARIANT_BOOL* pVal);
+	[id(6)] HRESULT SetSampleRate([in] DOUBLE rate, [in] ULONG oversample, [out, retval] VARIANT_BOOL* pVal);
+	[id(7)] HRESULT GetSampleRate([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] DOUBLE* host_Hz, [out] DOUBLE* rf_Hz, [out, retval] VARIANT_BOOL* pVal);
+	[id(8)] HRESULT SetLOFrequency([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] DOUBLE frequency, [out, retval] VARIANT_BOOL* pVal);
+	[id(9)] HRESULT GetLOFrequency([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] DOUBLE* frequency, [out, retval] VARIANT_BOOL* pVal);
+	[id(10)] HRESULT GetAntennaList([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out, retval] SAFEARRAY(BSTR) * list);
+	[id(11)] HRESULT SetAntenna([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] LMS_PATH index, [out, retval] VARIANT_BOOL* pVal);
+	[id(12)] HRESULT GetAntenna([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] LMS_PATH * index, [out, retval] VARIANT_BOOL* pVal);
+	[id(13)] HRESULT GetLPFBWRange([in] VARIANT_BOOL dir_tx, [out] LMSRange * range, [out, retval] VARIANT_BOOL* pVal);
+	[id(14)] HRESULT SetLPF([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] VARIANT_BOOL enable, [out, retval] VARIANT_BOOL* pVal);
+	[id(15)] HRESULT SetGFIRLPF([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] VARIANT_BOOL enable, [in] DOUBLE bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(16)] HRESULT Calibrate([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] DOUBLE bandwidth, [in] ULONG flags, [out, retval] VARIANT_BOOL* pVal);
+	[id(17)] HRESULT SetLPFBW([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] DOUBLE bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(18)] HRESULT GetLPFBW([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] DOUBLE * bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(19)] HRESULT SetNormalizedGain([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] DOUBLE gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(20)] HRESULT GetNormalizedGain([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] DOUBLE * gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(21)] HRESULT SetGaindB([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] ULONG gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(22)] HRESULT GetGaindB([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] ULONG * gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(23)] HRESULT LoadConfig([in] BSTR filename, [out, retval] VARIANT_BOOL* pVal);
+	[id(24)] HRESULT SaveConfig([in] BSTR filename, [out, retval] VARIANT_BOOL* pVal);
+	[id(25)] HRESULT SetTestSignal([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [in] LMS_TESTSIG sig, USHORT dc_i, USHORT dc_q, [out, retval] VARIANT_BOOL* pVal);
+	[id(26)] HRESULT GetTestSignal([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] LMS_TESTSIG * sig, [out, retval] VARIANT_BOOL* pVal);
+	[id(27)] HRESULT SetupStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
+	[id(28)] HRESULT DestroyStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
+};
+[
+	object,
+	uuid(32E69075-B68E-442A-80F3-3CAF00949CC4),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface ILMSLogHandler : IDispatch{
+	[id(1)] HRESULT LogHandler([in] LMS_LOG_LEVEL lvl, [in] BSTR msg);
+};
+[
+	uuid(57e497ce-cfc6-46f6-a07c-c10eb84b4a2a),
+	version(1.0),
+]
+library LimeCOMLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(1765761f-59c6-49e4-bad1-316ffa715c11)
+	]
+	coclass LimeAPI
+	{
+		[default] interface ILimeAPI;
+	};
+	[
+		uuid(5de2116f-f26f-411d-9598-163947e9f240)
+	]
+	coclass LMSDevice
+	{
+		[default] interface ILMSDevice;
+	};
+	[
+		uuid(6B7D7248-33EF-43BE-B555-29D3AF871D9E)		
+	]
+	coclass LMSStream
+	{
+		[default] interface ILMSStream;
+	};
+	struct LMSRange;
+	struct LMSStreamMeta;
+	struct LMSStreamStatus;
+	[
+		uuid(A9E4864D-D97A-4E8C-BA5F-785985AFBF7B)		
+	]
+	coclass LMSLogHandler
+	{
+		[default] interface ILMSLogHandler;
+	};
+};
+
+import "shobjidl.idl";
+import "shobjidl.idl";

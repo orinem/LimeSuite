@@ -1,0 +1,16 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {5de2116f-f26f-411d-9598-163947e9f240} = s 'LMSDevice class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Free'
+			}
+			TypeLib = s '{57e497ce-cfc6-46f6-a07c-c10eb84b4a2a}'
+			Version = s '1.0'
+		}
+	}
+}

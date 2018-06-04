@@ -1,0 +1,16 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {A9E4864D-D97A-4E8C-BA5F-785985AFBF7B} = s 'LMSLogHandler Class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Free'
+			}
+			TypeLib = s '{57e497ce-cfc6-46f6-a07c-c10eb84b4a2a}'
+			Version = s '1.0'
+		}
+	}
+}
