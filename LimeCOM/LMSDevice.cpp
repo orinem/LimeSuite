@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "LMSDevice.h"
+#include "LMSChannel.h"
 #include <vector>
 
 
@@ -10,16 +11,25 @@
 STDMETHODIMP CLMSDevice::Close(VARIANT_BOOL* pVal)
 {
 	if (pVal == nullptr) return E_POINTER;
-	if (m_device == nullptr) return OLE_E_BLANK;
-
 	*pVal = VARIANT_FALSE;
-	if (LMS_Close(m_device) == LMS_SUCCESS)
+
+	HRESULT hr = S_OK;
+
+	Lock();	// Protect m_device
+
+	if (m_device == nullptr)
+	{
+		hr = OLE_E_BLANK;
+	}
+	else if (LMS_Close(m_device) == LMS_SUCCESS)
 	{
 		*pVal = VARIANT_TRUE;
 		m_device = nullptr;
 	}
 
-	return S_OK;
+	Unlock();
+
+	return hr;
 }
 
 
@@ -508,4 +518,26 @@ STDMETHODIMP CLMSDevice::DestroyStream(ILMSStream * stream, VARIANT_BOOL* pVal)
 	if (LMS_DestroyStream(m_device, lms_stream) == LMS_SUCCESS)
 		*pVal = VARIANT_TRUE;
 	return S_OK;
+}
+
+
+STDMETHODIMP CLMSDevice::GetChannel(VARIANT_BOOL dir_tx, ULONG chan, ILMSChannel ** pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	if (m_device == nullptr) return OLE_E_BLANK;
+
+	CComObject<CLMSChannel> *pChannel;
+	HRESULT hr = CComObject<CLMSChannel>::CreateInstance(&pChannel);
+	if (SUCCEEDED(hr))
+	{
+		pChannel->AddRef();
+		pChannel->m_dir_tx = (dir_tx == VARIANT_TRUE);
+		pChannel->m_channel = chan;
+		pChannel->m_ILMSDevice = CComPtr<ILMSDevice>(this);
+
+		hr = pChannel->QueryInterface(pVal);
+		pChannel->Release();
+	}
+
+	return hr;
 }

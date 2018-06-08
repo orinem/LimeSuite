@@ -119,6 +119,8 @@ struct LMSStreamStatus
 
 interface ILMSDevice;
 interface ILMSLogHandler;
+interface ILMSChannel;
+
 [
 	object,
 	uuid(535b69d7-f0d0-460c-8630-5fc8b522f6af),
@@ -157,8 +159,8 @@ interface ILMSStream : IDispatch {
 	[id(8), local] HRESULT Recv([in] void *samples, [in, out] ULONG * sample_count, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
 	[id(9), local] HRESULT RecvWithMeta(void *samples, [in, out] ULONG * sample_count, [in, out] LMSStreamMeta * meta, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
 	[id(10)] HRESULT GetStatus([in, out] LMSStreamStatus * status, [out, retval] VARIANT_BOOL* pVal);
-	[id(11)] HRESULT Send([in, out, size_is(*sample_count*2)] FLOAT *samples, [in, out] ULONG * sample_count, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
-	[id(12)] HRESULT SendWithMeta([in, out, size_is(*sample_count*2)] FLOAT *samples, [in, out] ULONG * sample_count, [in, out] LMSStreamMeta * meta, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+	[id(11), local] HRESULT Send(void *samples, [in, out] ULONG * sample_count, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
+	[id(12), local] HRESULT SendWithMeta(void *samples, [in, out] ULONG * sample_count, [in, out] LMSStreamMeta * meta, [in] ULONG timeout_ms, [out, retval] VARIANT_BOOL * pVal);
 };
 [
 	object,
@@ -197,6 +199,7 @@ interface ILMSDevice : IDispatch
 	[id(26)] HRESULT GetTestSignal([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out] LMS_TESTSIG * sig, [out, retval] VARIANT_BOOL* pVal);
 	[id(27)] HRESULT SetupStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
 	[id(28)] HRESULT DestroyStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
+	[id(29)] HRESULT GetChannel([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out, retval] ILMSChannel ** pVal);
 };
 [
 	object,
@@ -207,6 +210,36 @@ interface ILMSDevice : IDispatch
 ]
 interface ILMSLogHandler : IDispatch{
 	[id(1)] HRESULT LogHandler([in] LMS_LOG_LEVEL lvl, [in] BSTR msg);
+};
+[
+	object,
+	uuid(CE3D7EF5-6567-4635-8D3B-1E61B635D5CB),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface ILMSChannel : IDispatch{
+	[propget, id(1)] HRESULT dir_tx([out, retval] VARIANT_BOOL* pVal);
+	[propget, id(2)] HRESULT channel([out, retval] ULONG* pVal);
+	[propget, id(3)] HRESULT device([out, retval] ILMSDevice ** pVal);
+	[id(5)] HRESULT EnableChannel([in] VARIANT_BOOL enabled, [out, retval] VARIANT_BOOL* pVal);
+	[id(7)] HRESULT GetSampleRate([out] DOUBLE* host_Hz, [out] DOUBLE* rf_Hz, [out, retval] VARIANT_BOOL* pVal);
+	[id(8)] HRESULT SetLOFrequency([in] DOUBLE frequency, [out, retval] VARIANT_BOOL* pVal);
+	[id(9)] HRESULT GetLOFrequency([out] DOUBLE* frequency, [out, retval] VARIANT_BOOL* pVal);
+	[id(10)] HRESULT GetAntennaList([out, retval] SAFEARRAY(BSTR) * list);
+	[id(11)] HRESULT SetAntenna([in] LMS_PATH index, [out, retval] VARIANT_BOOL* pVal);
+	[id(12)] HRESULT GetAntenna([out] LMS_PATH * index, [out, retval] VARIANT_BOOL* pVal);
+	[id(14)] HRESULT SetLPF([in] VARIANT_BOOL enable, [out, retval] VARIANT_BOOL* pVal);
+	[id(15)] HRESULT SetGFIRLPF([in] VARIANT_BOOL enable, [in] DOUBLE bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(16)] HRESULT Calibrate([in] DOUBLE bandwidth, [in] ULONG flags, [out, retval] VARIANT_BOOL* pVal);
+	[id(17)] HRESULT SetLPFBW([in] DOUBLE bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(18)] HRESULT GetLPFBW([out] DOUBLE * bandwidth, [out, retval] VARIANT_BOOL* pVal);
+	[id(19)] HRESULT SetNormalizedGain([in] DOUBLE gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(20)] HRESULT GetNormalizedGain([out] DOUBLE * gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(21)] HRESULT SetGaindB([in] ULONG gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(22)] HRESULT GetGaindB([out] ULONG * gain, [out, retval] VARIANT_BOOL* pVal);
+	[id(25)] HRESULT SetTestSignal([in] LMS_TESTSIG sig, USHORT dc_i, USHORT dc_q, [out, retval] VARIANT_BOOL* pVal);
+	[id(26)] HRESULT GetTestSignal([out] LMS_TESTSIG * sig, [out, retval] VARIANT_BOOL* pVal);
 };
 [
 	uuid(57e497ce-cfc6-46f6-a07c-c10eb84b4a2a),
@@ -245,6 +278,13 @@ library LimeCOMLib
 	coclass LMSLogHandler
 	{
 		[default] interface ILMSLogHandler;
+	};
+	[
+		uuid(091A5B3C-962B-4614-8B91-D1388A2A54C9)		
+	]
+	coclass LMSChannel
+	{
+		[default] interface ILMSChannel;
 	};
 };
 

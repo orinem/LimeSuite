@@ -78,6 +78,7 @@ public:
 	STDMETHOD(GetTestSignal)(VARIANT_BOOL dir_tx, ULONG chan, LMS_TESTSIG * sig, VARIANT_BOOL* pVal);
 	STDMETHOD(SetupStream)(ILMSStream * stream, VARIANT_BOOL* pVal);
 	STDMETHOD(DestroyStream)(ILMSStream * stream, VARIANT_BOOL* pVal);
+	STDMETHOD(GetChannel)(VARIANT_BOOL dir_tx, ULONG chan, ILMSChannel ** pVal);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(LMSDevice), CLMSDevice)

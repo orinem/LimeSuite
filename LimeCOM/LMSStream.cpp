@@ -186,13 +186,13 @@ STDMETHODIMP CLMSStream::GetStatus(LMSStreamStatus * status, VARIANT_BOOL* pVal)
 }
 
 
-STDMETHODIMP CLMSStream::Send(FLOAT *samples, ULONG * sample_count, ULONG timeout_ms, VARIANT_BOOL * pVal)
+STDMETHODIMP CLMSStream::Send(void *samples, ULONG * sample_count, ULONG timeout_ms, VARIANT_BOOL * pVal)
 {
 	return SendWithMeta(samples, sample_count, NULL, timeout_ms, pVal);
 }
 
 
-STDMETHODIMP CLMSStream::SendWithMeta(FLOAT *samples, ULONG * sample_count, LMSStreamMeta * meta, ULONG timeout_ms, VARIANT_BOOL * pVal)
+STDMETHODIMP CLMSStream::SendWithMeta(void *samples, ULONG * sample_count, LMSStreamMeta * meta, ULONG timeout_ms, VARIANT_BOOL * pVal)
 {
 	if (pVal == nullptr) return E_POINTER;
 	if (samples == nullptr) return E_POINTER;

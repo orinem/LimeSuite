@@ -43,6 +43,9 @@
     <ClCompile Include="LMSLogHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LMSChannel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -72,6 +75,9 @@
     <ClInclude Include="LMSLogHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LMSChannel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LimeCOM.rc">
@@ -95,6 +101,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="LMSLogHandler.rgs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="LMSChannel.rgs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

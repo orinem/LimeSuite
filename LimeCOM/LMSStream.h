@@ -75,8 +75,8 @@ public:
 	STDMETHOD(Recv)(void *samples, ULONG * sample_count, ULONG timeout_ms, VARIANT_BOOL * pVal);
 	STDMETHOD(RecvWithMeta)(void *samples, ULONG * sample_count, LMSStreamMeta * meta, ULONG timeout_ms, VARIANT_BOOL * pVal);
 	STDMETHOD(GetStatus)(LMSStreamStatus * status, VARIANT_BOOL* pVal);
-	STDMETHOD(Send)(FLOAT *samples, ULONG * sample_count, ULONG timeout_ms, VARIANT_BOOL * pVal);
-	STDMETHOD(SendWithMeta)(FLOAT *samples, ULONG * sample_count, LMSStreamMeta * meta, ULONG timeout_ms, VARIANT_BOOL * pVal);
+	STDMETHOD(Send)(void *samples, ULONG * sample_count, ULONG timeout_ms, VARIANT_BOOL * pVal);
+	STDMETHOD(SendWithMeta)(void *samples, ULONG * sample_count, LMSStreamMeta * meta, ULONG timeout_ms, VARIANT_BOOL * pVal);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(LMSStream), CLMSStream)
