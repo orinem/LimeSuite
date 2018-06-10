@@ -46,7 +46,7 @@ SoapyLMS7::SoapyLMS7(const ConnectionHandle &handle, const SoapySDR::Kwargs &arg
     const auto devInfo = lms7Device->GetInfo();  
     //quick summary
     SoapySDR::logf(SOAPY_SDR_INFO, "Device name: %s", devInfo->deviceName);
-    SoapySDR::logf(SOAPY_SDR_INFO, "Reference: %g MHz", lms7Device->GetClockFreq(LMS_CLOCK_REF));
+    SoapySDR::logf(SOAPY_SDR_INFO, "Reference: %g MHz", lms7Device->GetClockFreq(LMS_CLOCK_REF)/1e6);
 
     lms7Device->Init();
 
@@ -798,20 +798,22 @@ void SoapyLMS7::writeSetting(const int direction, const size_t channel, const st
         lms7Device->SetTestSignal(isTx, channel, LMS_TESTSIG_DC, ampl, 0);
     }
 
-    else if (key == "CALIBRATE_TX")
+    else if (key == "CALIBRATE_TX" or (isTx and key == "CALIBRATE"))
     {
         double bw = std::stof(value);
         SoapySDR::logf(SOAPY_SDR_INFO, "Calibrate Tx %f", bw);
         if (lms7Device->Calibrate(true, channel, bw, 0)!=0)
             throw std::runtime_error(lime::GetLastErrorMessage());
+        _channelsToCal.erase(std::make_pair(direction, channel));
     }
 
-    else if (key == "CALIBRATE_RX")
+    else if (key == "CALIBRATE_RX" or (not isTx and key == "CALIBRATE"))
     {
         double bw = std::stof(value);
         SoapySDR::logf(SOAPY_SDR_INFO, "CalibrateRx %f", bw);
         if (lms7Device->Calibrate(false, channel, bw, 0)!=0)
             throw std::runtime_error(lime::GetLastErrorMessage());
+        _channelsToCal.erase(std::make_pair(direction, channel));
     }
 
     else if (key == "ENABLE_GFIR_LPF")
@@ -847,15 +849,14 @@ void SoapyLMS7::writeSetting(const int direction, const size_t channel, const st
         {
             throw std::runtime_error("Invalid TSG_NCO option: " + value);
         }
-    }   
+    }
     else
     {
         uint16_t val = std::stoi(value);
         if (lms7Device->WriteParam(key,val,channel)!=-1)
             return;
+        throw std::runtime_error("unknown setting key: "+key);
     }
-
-    throw std::runtime_error("unknown setting key: "+key);
 }
 
 std::string SoapyLMS7::readSetting(const std::string &key) const
