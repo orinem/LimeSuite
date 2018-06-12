@@ -24,4 +24,4 @@
 #include <atlcom.h>
 #include <atlctl.h>
 
-#include "LimeSuite.h"
+#include "lime/LimeSuite.h"
