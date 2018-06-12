@@ -2,7 +2,7 @@
 ## lime COM wrapper
 ########################################################################
 cmake_dependent_option(ENABLE_LIME_COM "LimeSuite COM Wrapper" ON "ENABLE_LIBRARY" OFF)
-add_feature_info(LimeUtilCommand ENABLE_LIME_COM "COM wrapper")
+add_feature_info(LimeComDll ENABLE_LIME_COM "COM wrapper")
 if(ENABLE_LIME_COM)
 	# Magic to compile the idl file
 	SET(MIDL_OUTPUT
