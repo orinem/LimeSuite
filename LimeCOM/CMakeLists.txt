@@ -91,6 +91,10 @@ if(ENABLE_LIME_COM)
     add_dependencies(LimeCom midl-cmplr)
 	target_link_libraries(LimeCom LimeSuite)
 	install(TARGETS LimeCom DESTINATION bin)
+	set_target_properties(LimeCom PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+	add_custom_command(TARGET LimeCom
+        POST_BUILD
+        COMMAND tlbimp ARGS $(OutDir)$(TargetName)$(TargetExt) /out: ${CMAKE_BINARY_DIR}/bin/Interop/LimeComLib.dll
+        COMMENT "Creating Interop Dll")
 
-#	set_source_files_properties(LimeCOM.def PROPERTIES HEADER_FILE_ONLY TRUE)
 endif(ENABLE_LIME_COM)
