@@ -88,10 +88,13 @@ if(ENABLE_LIME_COM)
 	source_group("Header Files" FILES ${LIME_COM_HEADERS})
 
 	add_library(LimeCom SHARED ${LIME_COM_SOURCES} ${LIME_COM_HEADERS})
-    add_dependencies(LimeCom midl-cmplr)
+	add_dependencies(LimeCom midl-cmplr)
 	target_link_libraries(LimeCom LimeSuite)
 	install(TARGETS LimeCom DESTINATION bin)
 	set_target_properties(LimeCom PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+	# Create the interop dll using a Post Build event.
+	# (There's no need to differentiate between Debug and Release versions.)
 	add_custom_command(TARGET LimeCom
         POST_BUILD
         COMMAND tlbimp ARGS $(OutDir)$(TargetName)$(TargetExt) /out: ${CMAKE_BINARY_DIR}/bin/Interop/LimeComLib.dll
