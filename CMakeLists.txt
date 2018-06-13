@@ -201,8 +201,8 @@ endif()
 ## COM object
 ########################################################################
 if (MSVC)
-	add_subdirectory(LimeCom)
-	add_subdirectory(LimeComTest)
+	add_subdirectory(LimeCOM)
+	add_subdirectory(LimeCOMTest)
 endif(MSVC)
 
 ########################################################################
