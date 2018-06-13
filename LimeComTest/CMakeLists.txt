@@ -15,7 +15,7 @@ add_executable(LimeComTest
 	)
 
 set_property(TARGET LimeComTest PROPERTY VS_DOTNET_TARGET_FRAMEWORK_VERSION "v4.5.2")
-set_property(TARGET LimeComTest PROPERTY WIN32_EXECUTABLE TRUE)
+set_property(TARGET LimeComTest PROPERTY WIN32_EXECUTABLE FALSE)
 
 set_property(TARGET LimeComTest PROPERTY VS_DOTNET_REFERENCES
 	"LimeComLib"
