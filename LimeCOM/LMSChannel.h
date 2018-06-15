@@ -77,6 +77,8 @@ public:
 	STDMETHOD(GetGaindB)(ULONG * gain, VARIANT_BOOL* pVal);
 	STDMETHOD(SetTestSignal)(LMS_TESTSIG sig, USHORT dc_i, USHORT dc_q, VARIANT_BOOL* pVal);
 	STDMETHOD(GetTestSignal)(LMS_TESTSIG * sig, VARIANT_BOOL* pVal);
+	STDMETHOD(GetNCOFrequency)(SAFEARRAY ** frequency, DOUBLE* pho, VARIANT_BOOL* pVal);
+	STDMETHOD(SetNCOFrequency)(SAFEARRAY * frequency, DOUBLE pho, VARIANT_BOOL* pVal);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(LMSChannel), CLMSChannel)

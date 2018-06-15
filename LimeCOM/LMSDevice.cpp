@@ -541,3 +541,16 @@ STDMETHODIMP CLMSDevice::GetChannel(VARIANT_BOOL dir_tx, ULONG chan, ILMSChannel
 
 	return hr;
 }
+
+
+STDMETHODIMP CLMSDevice::SetSampleRateDir(VARIANT_BOOL dir_tx, DOUBLE rate, ULONG oversample, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	if (m_device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	if (LMS_SetSampleRateDir(m_device, dir_tx == VARIANT_TRUE, rate, oversample) == LMS_SUCCESS)
+		*pVal = VARIANT_TRUE;
+
+	return S_OK;
+}

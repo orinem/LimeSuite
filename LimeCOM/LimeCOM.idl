@@ -200,6 +200,7 @@ interface ILMSDevice : IDispatch
 	[id(27)] HRESULT SetupStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
 	[id(28)] HRESULT DestroyStream([in] ILMSStream * stream, [out, retval] VARIANT_BOOL* pVal);
 	[id(29)] HRESULT GetChannel([in] VARIANT_BOOL dir_tx, [in] ULONG chan, [out, retval] ILMSChannel ** pVal);
+	[id(30)] HRESULT SetSampleRateDir([in] VARIANT_BOOL dir_tx, [in] DOUBLE rate, [in] ULONG oversample, [out, retval] VARIANT_BOOL* pVal);
 };
 [
 	object,
@@ -240,6 +241,8 @@ interface ILMSChannel : IDispatch{
 	[id(22)] HRESULT GetGaindB([out] ULONG * gain, [out, retval] VARIANT_BOOL* pVal);
 	[id(25)] HRESULT SetTestSignal([in] LMS_TESTSIG sig, USHORT dc_i, USHORT dc_q, [out, retval] VARIANT_BOOL* pVal);
 	[id(26)] HRESULT GetTestSignal([out] LMS_TESTSIG * sig, [out, retval] VARIANT_BOOL* pVal);
+	[id(27)] HRESULT GetNCOFrequency([out] SAFEARRAY(DOUBLE) * frequency, [out] DOUBLE * pho, [out, retval] VARIANT_BOOL* pVal);
+	[id(28)] HRESULT SetNCOFrequency([in] SAFEARRAY(DOUBLE) frequency, [in] DOUBLE pho, [out, retval] VARIANT_BOOL* pVal);
 };
 [
 	uuid(57e497ce-cfc6-46f6-a07c-c10eb84b4a2a),

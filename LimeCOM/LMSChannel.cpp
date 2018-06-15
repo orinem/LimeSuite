@@ -407,3 +407,57 @@ STDMETHODIMP CLMSChannel::GetTestSignal(LMS_TESTSIG * sig, VARIANT_BOOL* pVal)
 }
 
 
+STDMETHODIMP CLMSChannel::GetNCOFrequency(SAFEARRAY ** frequency, DOUBLE* pho, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr || frequency == nullptr || pho == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	HRESULT hr = S_OK;
+	*frequency = SafeArrayCreateVector(VT_R8, 0, (ULONG)LMS_NCO_VAL_COUNT);
+	if (*frequency == nullptr)
+		hr = E_OUTOFMEMORY;
+	else
+	{
+		DOUBLE * pArrayData;
+		hr = SafeArrayAccessData(*frequency, (void **)&pArrayData);
+		if (SUCCEEDED(hr))
+		{
+			if (LMS_GetNCOFrequency(device, m_dir_tx, m_channel, pArrayData, pho) == LMS_SUCCESS)
+				*pVal = VARIANT_TRUE;
+			SafeArrayUnaccessData(*frequency);
+		}
+	}
+
+	return hr;
+}
+
+
+STDMETHODIMP CLMSChannel::SetNCOFrequency(SAFEARRAY * frequency, DOUBLE pho, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	VARTYPE vt;
+	LONG lBound, uBound;
+	DOUBLE * pArrayData;
+	HRESULT hr = E_INVALIDARG;
+	if (SafeArrayGetDim(frequency) == 1 &&
+		SUCCEEDED(SafeArrayGetVartype(frequency, &vt)) && vt == VT_R8 &&
+		SUCCEEDED(SafeArrayGetLBound(frequency, 1, &lBound)) &&
+		SUCCEEDED(SafeArrayGetUBound(frequency, 1, &uBound)) &&
+		uBound - lBound + 1 >= LMS_NCO_VAL_COUNT &&
+		SUCCEEDED(SafeArrayAccessData(frequency, (void **)&pArrayData)))
+	{
+		if (LMS_SetNCOFrequency(device, m_dir_tx, m_channel, pArrayData, pho) == LMS_SUCCESS)
+			*pVal = VARIANT_TRUE;
+		SafeArrayUnaccessData(frequency);
+	}
+
+	return hr;
+}
+
+

@@ -141,6 +141,11 @@ namespace LimeCOMTest
                 if (!rxChannel.SetTestSignal(LMS_TESTSIG.TESTSIG_NCODIV8, 0, 0))
                     error();
 
+                double[] ncoFrequencies = new double[16];
+                double pho = 0.0;
+                rxChannel.SetNCOFrequency(ncoFrequencies, pho);
+                rxChannel.GetNCOFrequency(out ncoFrequencies, out pho);
+
                 // Should probably use FMT_F32 for samples and let the lower levels do any necessary conversion.
                 LMSStream stream = new LMSStream
                 {

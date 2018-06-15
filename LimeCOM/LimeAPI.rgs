@@ -1,5 +1,13 @@
 HKCR
 {
+	LimeCOM.LimeAPI.1 = s 'LimeAPI Class'
+	{
+		CLSID = s '{1765761f-59c6-49e4-bad1-316ffa715c11}'
+	}
+	LimeCOM.LimeAPI = s 'LimeAPI Class'
+	{
+		CurVer = s 'LimeCOM.LimeAPI.1'
+	}
 	NoRemove CLSID
 	{
 		ForceRemove {1765761f-59c6-49e4-bad1-316ffa715c11} = s 'LimeAPI class'

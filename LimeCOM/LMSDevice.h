@@ -79,6 +79,7 @@ public:
 	STDMETHOD(SetupStream)(ILMSStream * stream, VARIANT_BOOL* pVal);
 	STDMETHOD(DestroyStream)(ILMSStream * stream, VARIANT_BOOL* pVal);
 	STDMETHOD(GetChannel)(VARIANT_BOOL dir_tx, ULONG chan, ILMSChannel ** pVal);
+	STDMETHOD(SetSampleRateDir)(VARIANT_BOOL dir_tx, DOUBLE rate, ULONG oversample, VARIANT_BOOL* pVal);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(LMSDevice), CLMSDevice)
