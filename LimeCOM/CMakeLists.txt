@@ -48,6 +48,7 @@ if(ENABLE_LIME_COM)
 
 	SET(LIME_COM_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${CMAKE_CURRENT_BINARY_DIR}
 		)
 
 	SET(PrecompiledBinary "$(IntDir)/LimeCom.pch")
@@ -88,6 +89,7 @@ if(ENABLE_LIME_COM)
 	source_group("Header Files" FILES ${LIME_COM_HEADERS})
 
 	add_library(LimeCom SHARED ${LIME_COM_SOURCES} ${LIME_COM_HEADERS})
+    target_include_directories(LimeCom PUBLIC ${LIME_COM_INCLUDES})
 	add_dependencies(LimeCom midl-cmplr)
 	target_link_libraries(LimeCom LimeSuite)
 	install(TARGETS LimeCom DESTINATION bin)
