@@ -554,3 +554,29 @@ STDMETHODIMP CLMSDevice::SetSampleRateDir(VARIANT_BOOL dir_tx, DOUBLE rate, ULON
 
 	return S_OK;
 }
+
+
+STDMETHODIMP CLMSDevice::VCTCXOWrite(USHORT VCTXOVal, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	if (m_device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	if (LMS_VCTCXOWrite(m_device, VCTXOVal) == LMS_SUCCESS)
+		*pVal = VARIANT_TRUE;
+
+	return S_OK;
+}
+
+
+STDMETHODIMP CLMSDevice::VCTCXORead(USHORT * pVCTXOVal, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	if (m_device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	if (LMS_VCTCXORead(m_device, pVCTXOVal) == LMS_SUCCESS)
+		*pVal = VARIANT_TRUE;
+
+	return S_OK;
+}

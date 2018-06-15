@@ -77,8 +77,17 @@ public:
 	STDMETHOD(GetGaindB)(ULONG * gain, VARIANT_BOOL* pVal);
 	STDMETHOD(SetTestSignal)(LMS_TESTSIG sig, USHORT dc_i, USHORT dc_q, VARIANT_BOOL* pVal);
 	STDMETHOD(GetTestSignal)(LMS_TESTSIG * sig, VARIANT_BOOL* pVal);
-	STDMETHOD(GetNCOFrequency)(SAFEARRAY ** frequency, DOUBLE* pho, VARIANT_BOOL* pVal);
 	STDMETHOD(SetNCOFrequency)(SAFEARRAY * frequency, DOUBLE pho, VARIANT_BOOL* pVal);
+	STDMETHOD(GetNCOFrequency)(SAFEARRAY ** frequency, DOUBLE* pho, VARIANT_BOOL* pVal);
+	STDMETHOD(SetNCOPhase)(SAFEARRAY * phases, DOUBLE fcw, VARIANT_BOOL* pVal);
+	STDMETHOD(GetNCOPhase)(SAFEARRAY ** phases, DOUBLE* fcw, VARIANT_BOOL* pVal);
+	STDMETHOD(SetNCOIndex)(LONG index, VARIANT_BOOL downconv, VARIANT_BOOL* pVal);
+	STDMETHOD(get_NCOIndex)(LONG * pVal);
+	STDMETHOD(get_NCO_VAL_COUNT)(ULONG * pVal);
+	STDMETHOD(SetGFIRCoeff)(LMS_GFIR filt, SAFEARRAY * coef, VARIANT_BOOL* pVal);
+	STDMETHOD(GetGFIRCoeff)(LMS_GFIR filt, SAFEARRAY ** coef, VARIANT_BOOL* pVal);
+	STDMETHOD(SetGFIR)(LMS_GFIR filt, VARIANT_BOOL enabled, VARIANT_BOOL* pVal);
+	STDMETHOD(get_GFIRCoeffCount)(LMS_GFIR filt, ULONG * pVal);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(LMSChannel), CLMSChannel)

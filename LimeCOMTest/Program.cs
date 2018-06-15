@@ -141,10 +141,18 @@ namespace LimeCOMTest
                 if (!rxChannel.SetTestSignal(LMS_TESTSIG.TESTSIG_NCODIV8, 0, 0))
                     error();
 
-                double[] ncoFrequencies = null; // new double[16];
+                Console.WriteLine("NCO_VAL_COUNT is {0}", rxChannel.NCO_VAL_COUNT);
+                double[] ncoFrequencies = new double[rxChannel.NCO_VAL_COUNT];
                 double pho = 0.0;
-                //rxChannel.SetNCOFrequency(ncoFrequencies, pho);
+                rxChannel.SetNCOFrequency(ncoFrequencies, pho);
+                ncoFrequencies = null;
                 rxChannel.GetNCOFrequency(out ncoFrequencies, out pho);
+                Console.WriteLine("NCO Index is {0}", rxChannel.NCOIndex);
+                ncoFrequencies = null;
+
+                Console.WriteLine("{0}: max coefficient count is {1}", LMS_GFIR.GFIR1, rxChannel.GFIRCoeffCount[LMS_GFIR.GFIR1]);
+                Console.WriteLine("{0}: max coefficient count is {1}", LMS_GFIR.GFIR2, rxChannel.GFIRCoeffCount[LMS_GFIR.GFIR2]);
+                Console.WriteLine("{0}: max coefficient count is {1}", LMS_GFIR.GFIR3, rxChannel.GFIRCoeffCount[LMS_GFIR.GFIR3]);
 
                 // Should probably use FMT_F32 for samples and let the lower levels do any necessary conversion.
                 LMSStream stream = new LMSStream

@@ -445,13 +445,15 @@ STDMETHODIMP CLMSChannel::SetNCOFrequency(SAFEARRAY * frequency, DOUBLE pho, VAR
 	LONG lBound, uBound;
 	DOUBLE * pArrayData;
 	HRESULT hr = E_INVALIDARG;
-	if (SafeArrayGetDim(frequency) == 1 &&
+	if (frequency != nullptr &&
+		SafeArrayGetDim(frequency) == 1 &&
 		SUCCEEDED(SafeArrayGetVartype(frequency, &vt)) && vt == VT_R8 &&
 		SUCCEEDED(SafeArrayGetLBound(frequency, 1, &lBound)) &&
 		SUCCEEDED(SafeArrayGetUBound(frequency, 1, &uBound)) &&
 		uBound - lBound + 1 >= LMS_NCO_VAL_COUNT &&
 		SUCCEEDED(SafeArrayAccessData(frequency, (void **)&pArrayData)))
 	{
+		hr = S_OK;
 		if (LMS_SetNCOFrequency(device, m_dir_tx, m_channel, pArrayData, pho) == LMS_SUCCESS)
 			*pVal = VARIANT_TRUE;
 		SafeArrayUnaccessData(frequency);
@@ -460,4 +462,236 @@ STDMETHODIMP CLMSChannel::SetNCOFrequency(SAFEARRAY * frequency, DOUBLE pho, VAR
 	return hr;
 }
 
+
+STDMETHODIMP CLMSChannel::GetNCOPhase(SAFEARRAY ** phases, DOUBLE* fcw, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr || phases == nullptr || fcw == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	HRESULT hr = S_OK;
+	*phases = SafeArrayCreateVector(VT_R8, 0, (ULONG)LMS_NCO_VAL_COUNT);
+	if (*phases == nullptr)
+		hr = E_OUTOFMEMORY;
+	else
+	{
+		DOUBLE * pArrayData;
+		hr = SafeArrayAccessData(*phases, (void **)&pArrayData);
+		if (SUCCEEDED(hr))
+		{
+			if (LMS_GetNCOPhase(device, m_dir_tx, m_channel, pArrayData, fcw) == LMS_SUCCESS)
+				*pVal = VARIANT_TRUE;
+			SafeArrayUnaccessData(*phases);
+		}
+	}
+
+	return hr;
+}
+
+
+STDMETHODIMP CLMSChannel::SetNCOPhase(SAFEARRAY * phases, DOUBLE fcw, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	VARTYPE vt;
+	LONG lBound, uBound;
+	DOUBLE * pArrayData;
+	HRESULT hr = E_INVALIDARG;
+	if (phases != nullptr &&
+		SafeArrayGetDim(phases) == 1 &&
+		SUCCEEDED(SafeArrayGetVartype(phases, &vt)) && vt == VT_R8 &&
+		SUCCEEDED(SafeArrayGetLBound(phases, 1, &lBound)) &&
+		SUCCEEDED(SafeArrayGetUBound(phases, 1, &uBound)) &&
+		uBound - lBound + 1 >= LMS_NCO_VAL_COUNT &&
+		SUCCEEDED(SafeArrayAccessData(phases, (void **)&pArrayData)))
+	{
+		hr = S_OK;
+		if (LMS_SetNCOPhase(device, m_dir_tx, m_channel, pArrayData, fcw) == LMS_SUCCESS)
+			*pVal = VARIANT_TRUE;
+		SafeArrayUnaccessData(phases);
+	}
+
+	return hr;
+}
+
+
+STDMETHODIMP CLMSChannel::SetNCOIndex(LONG index, VARIANT_BOOL downconv, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+	*pVal = VARIANT_FALSE;
+
+	if (LMS_SetNCOIndex(device, m_dir_tx, m_channel, index, downconv == VARIANT_TRUE) == LMS_SUCCESS)
+		*pVal = VARIANT_TRUE;
+
+	return S_OK;
+}
+
+
+STDMETHODIMP CLMSChannel::get_NCOIndex(LONG * pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+
+	*pVal = LMS_GetNCOIndex(device, m_dir_tx, m_channel);
+
+	return S_OK;
+}
+
+
+STDMETHODIMP CLMSChannel::get_NCO_VAL_COUNT(ULONG * pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	*pVal = LMS_NCO_VAL_COUNT;
+	return S_OK;
+}
+
+
+STDMETHODIMP CLMSChannel::SetGFIRCoeff(LMS_GFIR filt, SAFEARRAY * coef, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+
+	*pVal = VARIANT_FALSE;
+
+	size_t maxCount = 40;
+	lms_gfir_t lmsFilt = LMS_GFIR1;
+	switch (filt)
+	{
+	case GFIR1:
+		break;
+	case GFIR2:
+		lmsFilt = LMS_GFIR2;
+		break;
+	case GFIR3:
+		lmsFilt = LMS_GFIR3;
+		maxCount = 120;
+		break;
+	default:
+		return E_INVALIDARG;
+	}
+
+	VARTYPE vt;
+	LONG lBound, uBound;
+	DOUBLE * pArrayData;
+	HRESULT hr = E_INVALIDARG;
+	if (coef != nullptr &&
+		SafeArrayGetDim(coef) == 1 &&
+		SUCCEEDED(SafeArrayGetVartype(coef, &vt)) && vt == VT_R8 &&
+		SUCCEEDED(SafeArrayGetLBound(coef, 1, &lBound)) &&
+		SUCCEEDED(SafeArrayGetUBound(coef, 1, &uBound)) &&
+		uBound - lBound + 1 <= maxCount &&
+		SUCCEEDED(SafeArrayAccessData(coef, (void **)&pArrayData)))
+	{
+		hr = S_OK;
+		if (LMS_SetGFIRCoeff(device, m_dir_tx, m_channel, lmsFilt, pArrayData, uBound - lBound + 1) == LMS_SUCCESS)
+			*pVal = VARIANT_TRUE;
+		SafeArrayUnaccessData(coef);
+	}
+
+	return hr;
+}
+
+
+STDMETHODIMP CLMSChannel::GetGFIRCoeff(LMS_GFIR filt, SAFEARRAY ** coef, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+
+	*pVal = VARIANT_FALSE;
+
+	size_t maxCount = 40;
+	lms_gfir_t lmsFilt = LMS_GFIR1;
+	switch (filt)
+	{
+	case GFIR1:
+		break;
+	case GFIR2:
+		lmsFilt = LMS_GFIR2;
+		break;
+	case GFIR3:
+		lmsFilt = LMS_GFIR3;
+		maxCount = 120;
+		break;
+	default:
+		return E_INVALIDARG;
+	}
+
+	HRESULT hr = S_OK;
+	*coef = SafeArrayCreateVector(VT_R8, 0, (ULONG)maxCount);
+	if (*coef == nullptr)
+		hr = E_OUTOFMEMORY;
+	else
+	{
+		DOUBLE * pArrayData;
+		hr = SafeArrayAccessData(*coef, (void **)&pArrayData);
+		if (SUCCEEDED(hr))
+		{
+			if (LMS_GetGFIRCoeff(device, m_dir_tx, m_channel, lmsFilt, pArrayData) == LMS_SUCCESS)
+				*pVal = VARIANT_TRUE;
+			SafeArrayUnaccessData(*coef);
+		}
+	}
+
+	return hr;
+}
+
+
+STDMETHODIMP CLMSChannel::SetGFIR(LMS_GFIR filt, VARIANT_BOOL enabled, VARIANT_BOOL* pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+	lms_device_t * device = GetLMSDevice();
+	if (device == nullptr) return OLE_E_BLANK;
+
+	*pVal = VARIANT_FALSE;
+
+	lms_gfir_t lmsFilt = LMS_GFIR1;
+	switch (filt)
+	{
+	case GFIR1:
+		break;
+	case GFIR2:
+		lmsFilt = LMS_GFIR2;
+		break;
+	case GFIR3:
+		lmsFilt = LMS_GFIR3;
+		break;
+	default:
+		return E_INVALIDARG;
+	}
+
+	if (LMS_SetGFIR(device, m_dir_tx, m_channel, lmsFilt, enabled == VARIANT_TRUE) == LMS_SUCCESS)
+		*pVal = VARIANT_TRUE;
+
+	return S_OK;
+}
+
+
+STDMETHODIMP CLMSChannel::get_GFIRCoeffCount(LMS_GFIR filt, ULONG * pVal)
+{
+	if (pVal == nullptr) return E_POINTER;
+
+	switch (filt)
+	{
+	case GFIR1:
+	case GFIR2:
+		*pVal = 40;
+		break;
+	case GFIR3:
+		*pVal = 120;
+		break;
+	default:
+		return E_INVALIDARG;
+	}
+
+	return S_OK;
+}
 
