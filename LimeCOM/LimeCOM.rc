@@ -73,15 +73,15 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "CompanyName", "Pinhead Technologies"
+            VALUE "FileDescription", "COM Wrapper for Lime Microsystems Ltd's LimeSuite dll."
             VALUE "FileVersion", "1.0.0.1"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
             VALUE "InternalName", "LimeCOM.dll"
+            VALUE "LegalCopyright", "(c) 2018 Orin Eman.  All rights reserved."
             VALUE "OriginalFilename", "LimeCOM.dll"
-            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductName", "LimeCOM"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END
