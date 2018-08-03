@@ -936,29 +936,29 @@ float_type LMS7002M::GetTRFLoopbackPAD_dB(void)
 
 int LMS7002M::SetTBBIAMP_dB(const float_type gain)
 {
-    int ind = Get_SPI_Reg_bits(LMS7_MAC);
+    int ind = this->GetActiveChannelIndex()%2;
     if (opt_gain_tbb[ind] <= 0)
     {
         if (CalibrateTxGain(0,nullptr)!=0) //set optimal BB gain
             return -1;
+        if (std::fabs(gain) < 0.2) // optimal gain = ~0dB
+            return 0;
     }
 
-    if (gain != 0)
-    {
-          int g_iamp = (float_type)opt_gain_tbb[ind]*pow(10.0,gain/20.0)+0.4;
-          Modify_SPI_Reg_bits(LMS7param(CG_IAMP_TBB),g_iamp > 63 ? 63 : g_iamp, true);
-    }
+    int g_iamp = (float_type)opt_gain_tbb[ind]*pow(10.0,gain/20.0)+0.4;
+    Modify_SPI_Reg_bits(LMS7param(CG_IAMP_TBB),g_iamp > 63 ? 63 : g_iamp, true);
+
     return 0;
 }
 
 float_type LMS7002M::GetTBBIAMP_dB(void)
 {
     int g_current = Get_SPI_Reg_bits(LMS7param(CG_IAMP_TBB),true);
-    int ind = Get_SPI_Reg_bits(LMS7_MAC);
+    int ind = this->GetActiveChannelIndex()%2;
 
     if (opt_gain_tbb[ind] <= 0)
     {
-        if (CalibrateTxGain(0,nullptr)==0)
+        if (CalibrateTxGain(0,nullptr)!=0)
             return 0.0;
         Modify_SPI_Reg_bits(LMS7param(CG_IAMP_TBB),g_current, true); //restore
     }
@@ -1454,6 +1454,9 @@ const LMS7Parameter* LMS7002M::GetParam(const std::string &name)
 */
 int LMS7002M::SetFrequencySX(bool tx, float_type freq_Hz, SX_details* output)
 {
+    static map<float_type, int8_t> tuning_cache_sel_vco;
+    static map<float_type, int16_t> tuning_cache_csw_value;
+
     const char* vcoNames[] = {"VCOL", "VCOM", "VCOH"};
     const uint8_t sxVCO_N = 2; //number of entries in VCO frequencies
     const float_type m_dThrF = 5500e6; //threshold to enable additional divider
@@ -1512,9 +1515,29 @@ int LMS7002M::SetFrequencySX(bool tx, float_type freq_Hz, SX_details* output)
         output->div_loch = div_loch;
     }
 
-    //find which VCO supports required frequency
+    // turn on VCO and comparator
     Modify_SPI_Reg_bits(LMS7param(PD_VCO), 0); //
-    Modify_SPI_Reg_bits(LMS7param(PD_VCO_COMP), 0); //
+    Modify_SPI_Reg_bits(LMS7param(PD_VCO_COMP), 0);
+
+    // try setting tuning values from the cache, if it fails perform full tuning
+    if  (useCache && tuning_cache_sel_vco.count(freq_Hz) > 0)
+    {
+        Modify_SPI_Reg_bits(LMS7param(SEL_VCO), tuning_cache_sel_vco[freq_Hz]);
+        Modify_SPI_Reg_bits(LMS7param(CSW_VCO).address, LMS7param(CSW_VCO).msb, LMS7param(CSW_VCO).lsb, tuning_cache_csw_value[freq_Hz]);
+        this_thread::sleep_for(chrono::microseconds(50)); // probably no need for this as the interface is already very slow..
+        auto cmphl = (uint8_t)Get_SPI_Reg_bits(LMS7param(VCO_CMPHO).address, 13, 12, true);
+        if(cmphl == 2) {
+            lime::info("Fast Tune success; vco=%d value=%d", tuning_cache_sel_vco[freq_Hz], tuning_cache_csw_value[freq_Hz]);
+            this->SetActiveChannel(ch); //restore used channel
+            if (output)
+            {
+                output->success = true;
+                output->sel_vco = sel_vco;
+                output->csw = csw_value;
+            }
+            return 0;
+        }
+    }
 
     canDeliverFrequency = false;
     int tuneScore[] = { -128, -128, -128 }; //best is closest to 0
@@ -1559,6 +1582,13 @@ int LMS7002M::SetFrequencySX(bool tx, float_type freq_Hz, SX_details* output)
     }
     Modify_SPI_Reg_bits(LMS7param(SEL_VCO), sel_vco);
     Modify_SPI_Reg_bits(LMS7param(CSW_VCO), csw_value);
+
+    // save successful tuning results in cache
+    if (useCache && canDeliverFrequency) {
+        tuning_cache_sel_vco[freq_Hz] = sel_vco;
+        tuning_cache_csw_value[freq_Hz] = csw_value;
+    }
+
     this->SetActiveChannel(ch); //restore used channel
 
     if (canDeliverFrequency == false)
@@ -2425,6 +2455,14 @@ int LMS7002M::SetInterfaceFrequency(float_type cgen_freq_Hz, const uint8_t inter
         Modify_SPI_Reg_bits(LMS7param(RXDIVEN), true);
         Modify_SPI_Reg_bits(LMS7param(MCLK2SRC), mclk2src & 1);
     }
+
+    if (Get_SPI_Reg_bits(LMS7param(RX_MUX)) == 0)
+    {
+        bool mimoBypass = (decimation == 7) && (siso == 0);
+        Modify_SPI_Reg_bits(LMS7param(RXRDCLK_MUX),mimoBypass ? 3 : 1);
+        Modify_SPI_Reg_bits(LMS7param(RXWRCLK_MUX),mimoBypass ? 1 : 2);
+    }
+
     siso =  Get_SPI_Reg_bits(LMS7_LML1_SISODDR);
     int mclk1src = Get_SPI_Reg_bits(LMS7param(MCLK1SRC));
     if (interpolation == 7 || (interpolation == 0 && siso == 0)) //bypass
@@ -2442,6 +2480,13 @@ int LMS7002M::SetInterfaceFrequency(float_type cgen_freq_Hz, const uint8_t inter
             Modify_SPI_Reg_bits(LMS7param(TXTSPCLKA_DIV), 0);
         Modify_SPI_Reg_bits(LMS7param(TXDIVEN), true);
         Modify_SPI_Reg_bits(LMS7param(MCLK1SRC), mclk1src & 1);
+    }
+
+    if (Get_SPI_Reg_bits(LMS7param(TX_MUX)) == 0)
+    {
+        bool mimoBypass = (interpolation == 7) && (siso == 0);
+        Modify_SPI_Reg_bits(LMS7param(TXRDCLK_MUX),mimoBypass ? 0 : 2);
+        Modify_SPI_Reg_bits(LMS7param(TXWRCLK_MUX), 0);
     }
 
     return status;
